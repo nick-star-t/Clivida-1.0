@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Minhas Consultas</title>
+<style>
+ body{font-family:-apple-system,Roboto,Arial;margin:0;padding:20px;background:#f4f6fa;color:#111}
+ .card{background:#fff;padding:18px;border-radius:14px;box-shadow:0 8px 20px rgba(0,0,0,0.08);max-width:520px;margin:40px auto}
+ input,button{width:100%;padding:10px;margin-top:10px;border-radius:10px;border:1px solid #ddd}
+ button{background:#007aff;color:#fff;border:none;cursor:pointer}
+ ul{list-style:none;padding:0;margin-top:14px}
+ li{background:#f0f6ff;padding:10px;border-radius:10px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center}
+ a{display:block;text-align:center;margin-top:12px;color:#007aff;text-decoration:none}
+</style>
+</head>
+<body>
+<div class="card">
+  <h2>Minhas Consultas</h2>
+  <label>Data e hora</label>
+  <input type="datetime-local" id="consultaData">
+  <input type="text" id="consultaDesc" placeholder="Descrição da consulta (Ex: Cardiologista)">
+  <button id="addBtn">Adicionar consulta</button>
+
+  <ul id="lista"></ul>
+  <a href="home.html">← Voltar para Home</a>
+</div>
+
+<script>
+// Utilities
+function saveConsultas(arr){ localStorage.setItem("consultas", JSON.stringify(arr)); }
+function saveNotificacao(obj){ const arr=JSON.parse(localStorage.getItem("notificacoes")||"[]"); arr.unshift(obj); localStorage.setItem("notificacoes", JSON.stringify(arr)); }
+
+// render
+function render(){
+  const arr = JSON.parse(localStorage.getItem("consultas") || "[]");
+  const ul = document.getElementById("lista"); ul.innerHTML = "";
+  arr.forEach((c,i) => {
+    const li = document.createElement("li");
+    const date = new Date(c.datetime);
+    li.innerHTML = `<div><strong>${c.desc}</strong><div style="font-size:12px;opacity:.8">${date.toLocaleString()}</div></div>`;
+    const btn = document.createElement("button"); btn.textContent="❌"; btn.style.background="#ff3b30"; btn.onclick = ()=>{ cancelConsulta(c.notifId); arr.splice(i,1); saveConsultas(arr); render(); };
+    li.appendChild(btn);
+    ul.appendChild(li);
+  });
+}
+
+// schedule local notification 30 minutes before
+function scheduleConsulta(datetime, desc, notifId){
+  const when = new Date(datetime).getTime();
+  const triggerAt = new Date(when - (30*60*1000)); // 30 min before
+  const now = Date.now();
+  if(window.cordova && window.cordova.plugins && cordova.plugins.notification){
+    if(triggerAt.getTime && triggerAt.getTime() > now){
+      cordova.plugins.notification.local.schedule({
+        id: notifId,
+        title: "Consulta em breve",
+        text: `${desc} — em 30 minutos`,
+        trigger: { at: new Date(triggerAt) }
+      });
+    }
+  }
+  // save to unified notifications list
+  saveNotificacao({ title:"Consulta marcada", body: desc, date: new Date(datetime).toISOString(), type:"consulta"});
+}
+
+function cancelConsulta(notifId){
+  if(window.cordova && window.cordova.plugins && cordova.plugins.notification){
+    cordova.plugins.notification.local.cancel(notifId, ()=>{}, ()=>{});
+  }
+}
+
+// add
+document.getElementById("addBtn").addEventListener("click", ()=>{
+  const dt = document.getElementById("consultaData").value;
+  const desc = document.getElementById("consultaDesc").value.trim();
+  if(!dt || !desc) return alert("Preencha data/hora e descrição");
+  const arr = JSON.parse(localStorage.getItem("consultas")||"[]");
+  const id = Date.now();
+  arr.push({ datetime: dt, desc, notifId: id });
+  saveConsultas(arr);
+  scheduleConsulta(dt, desc, id);
+  render();
+  document.getElementById("consultaData").value=""; document.getElementById("consultaDesc").value="";
+  alert("Consulta salva e lembrete agendado (30 min antes).");
+});
+
+// init
+render();
+
+// deviceready: ensure local notifications permission
+document.addEventListener("deviceready", ()=> {
+  if(cordova && cordova.plugins && cordova.plugins.notification && cordova.plugins.notification.local){
+    cordova.plugins.notification.local.requestPermission();
+  }
+}, false);
+</script>
+</body>
+</html>

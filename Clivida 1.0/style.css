@@ -1,0 +1,147 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap');
+
+:root {
+  --bg-color: #f9f9fb;
+  --text-color: #1c1c1e;
+  --card-color: #ffffff;
+  --accent-color: #007aff;
+  --subtext: #8e8e93;
+  --shadow: rgba(0, 0, 0, 0.08);
+}
+
+body.dark-mode {
+  --bg-color: #121212;
+  --text-color: #f2f2f7;
+  --card-color: #1e1e1e;
+  --accent-color: #0a84ff;
+  --subtext: #a1a1a6;
+  --shadow: rgba(255, 255, 255, 0.05);
+}
+
+body {
+  font-family: "Poppins", sans-serif;
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  margin: 0;
+  padding: 0;
+  transition: background-color 0.4s, color 0.4s;
+}
+
+/* Topbar */
+.topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px;
+  background: var(--card-color);
+  box-shadow: 0 2px 12px var(--shadow);
+}
+
+.topbar h1 {
+  font-size: 20px;
+  margin: 0;
+  color: var(--accent-color);
+}
+
+.dark-toggle {
+  background: none;
+  border: none;
+  font-size: 22px;
+  cursor: pointer;
+  color: var(--accent-color);
+}
+
+/* Container principal */
+.profile-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 30px 20px;
+}
+
+/* Foto e infos */
+.profile-info {
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.photo-upload {
+  position: relative;
+  display: inline-block;
+  cursor: pointer;
+}
+
+.profile-pic {
+  width: 130px;
+  height: 130px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 4px solid var(--accent-color);
+  box-shadow: 0 4px 15px var(--shadow);
+  transition: transform 0.3s;
+}
+
+.profile-pic:hover {
+  transform: scale(1.03);
+}
+
+.edit-hint {
+  position: absolute;
+  bottom: 8px;
+  right: 8px;
+  background: var(--accent-color);
+  color: white;
+  font-size: 10px;
+  padding: 4px 6px;
+  border-radius: 6px;
+  display: none;
+}
+
+.photo-upload:hover .edit-hint {
+  display: block;
+}
+
+h2 {
+  margin: 15px 0 5px;
+  font-weight: 600;
+}
+
+p {
+  color: var(--subtext);
+}
+
+/* Botões do perfil */
+.options {
+  width: 100%;
+  max-width: 360px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.option-btn {
+  background: var(--card-color);
+  color: var(--text-color);
+  border: none;
+  padding: 16px;
+  border-radius: 14px;
+  font-size: 16px;
+  box-shadow: 0 4px 14px var(--shadow);
+  transition: all 0.3s;
+  cursor: pointer;
+}
+
+.option-btn:hover {
+  transform: translateY(-2px);
+  background: var(--accent-color);
+  color: white;
+}
+
+.logout {
+  background: #ff3b30;
+  color: white;
+}
+
+.logout:hover {
+  background: #d92b21;
+}

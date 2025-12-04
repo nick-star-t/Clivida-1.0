@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Alertas</title>
+<style>
+ body{font-family:-apple-system,Roboto,Arial;margin:0;padding:20px;background:#f4f6fa;color:#111}
+ .card{background:#fff;padding:18px;border-radius:14px;box-shadow:0 8px 20px rgba(0,0,0,0.08);max-width:700px;margin:40px auto}
+ .item{background:#f0f6ff;padding:12px;border-radius:10px;margin-bottom:10px}
+ a{display:block;text-align:center;margin-top:12px;color:#007aff;text-decoration:none}
+</style>
+</head>
+<body>
+<div class="card">
+  <h2>Alertas e Notificações</h2>
+  <div id="lista"></div>
+  <button id="clearAll" style="margin-top:12px;padding:10px;width:100%;border-radius:10px;border:none;background:#ff3b30;color:#fff;cursor:pointer">Limpar tudo</button>
+  <a href="home.html">← Voltar para Home</a>
+</div>
+
+<script>
+function loadAlerts(){
+  const arr = JSON.parse(localStorage.getItem("notificacoes")||"[]");
+  const box = document.getElementById("lista"); box.innerHTML="";
+  if(arr.length===0) { box.innerHTML="<p>Nenhuma notificação.</p>"; return; }
+  arr.forEach((n,i)=>{
+    const div = document.createElement("div"); div.className="item";
+    div.innerHTML = `<strong>${n.title}</strong><div style="opacity:.9">${n.body}</div><small style="opacity:.7">${new Date(n.date).toLocaleString()}</small>`;
+    box.appendChild(div);
+  });
+}
+
+// clear all (also cancel scheduled local notifications)
+document.getElementById("clearAll").addEventListener("click", ()=>{
+  if(confirm("Apagar todas as notificações salvas e cancelar lembretes locais?")){
+    // cancel all local notifications
+    if(window.cordova && window.cordova.plugins && cordova.plugins.notification){
+      cordova.plugins.notification.local.cancelAll(()=>{}, ()=>{});
+    }
+    localStorage.removeItem("notificacoes");
+    localStorage.removeItem("consultas");
+    localStorage.removeItem("medicamentos");
+    loadAlerts();
+    alert("Tudo removido.");
+  }
+});
+
+document.addEventListener("DOMContentLoaded", loadAlerts);
+</script>
+</body>
+</html>

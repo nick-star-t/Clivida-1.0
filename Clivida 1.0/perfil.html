@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Perfil - Clivida</title>
+<style>
+  :root {
+    --bg: #f4f6fa;
+    --card: #fff;
+    --text: #111;
+    --accent: #007aff;
+    --shadow: rgba(0,0,0,0.12);
+  }
+  body.dark {
+    --bg: #0f0f0f;
+    --card: #1c1c1e;
+    --text: #f5f5f7;
+    --accent: #0a84ff;
+    --shadow: rgba(255,255,255,0.08);
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+  body {
+    margin: 0;
+    padding: 20px;
+    background: var(--bg);
+    color: var(--text);
+    font-family: "SF Pro Display", -apple-system, BlinkMacSystemFont, Roboto, Arial;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    transition: background 0.3s, color 0.3s;
+  }
+  header {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+  }
+  .logo {
+    color: var(--accent);
+    font-weight: 700;
+    font-size: 20px;
+  }
+  #darkToggle {
+    background: none;
+    border: none;
+    font-size: 20px;
+    color: var(--accent);
+    cursor: pointer;
+  }
+  .card {
+    background: var(--card);
+    border-radius: 18px;
+    padding: 25px;
+    max-width: 400px;
+    width: 90%;
+    box-shadow: 0 8px 20px var(--shadow);
+    text-align: center;
+  }
+  img {
+    width: 130px;
+    height: 130px;
+    border-radius: 50%;
+    object-fit: cover;
+    margin-bottom: 15px;
+    box-shadow: 0 6px 15px var(--shadow);
+    cursor: pointer;
+  }
+  input {
+    margin: 10px 0;
+    width: 85%;
+    padding: 10px;
+    border-radius: 10px;
+    border: 1px solid #ccc;
+    background: transparent;
+    color: var(--text);
+  }
+  button {
+    margin-top: 10px;
+    padding: 10px 16px;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    background: var(--accent);
+    color: #fff;
+    font-weight: 600;
+    width: 85%;
+    transition: 0.2s;
+  }
+  button:hover {
+    opacity: 0.9;
+  }
+  a {
+    display: block;
+    margin-top: 20px;
+    color: var(--accent);
+    text-decoration: none;
+  }
+  a:hover {
+    text-decoration: underline;
+  }
+</style>
+</head>
+<body>
+  <header>
+    <h1 class="logo">Clivida</h1>
+    <button id="darkToggle">🌙</button>
+  </header>
+
+  <div class="card">
+    <h2>Editar Perfil</h2>
+    <label for="file">
+      <img id="foto" src="https://cdn-icons-png.flaticon.com/512/847/847969.png" alt="Foto de Perfil">
+    </label>
+    <input type="file" id="file" accept="image/*" style="display:none;">
+    <input type="text" id="nome" placeholder="Seu nome completo">
+    <button id="salvar">Salvar Alterações</button>
+    <a href="home.html">← Voltar para Home</a>
+  </div>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const darkToggle = document.getElementById("darkToggle");
+      const foto = document.getElementById("foto");
+      const nome = document.getElementById("nome");
+      const fileInput = document.getElementById("file");
+
+      // 🌓 Dark mode persistente
+      if (localStorage.getItem("darkMode") === "true") {
+        document.body.classList.add("dark");
+        darkToggle.textContent = "☀️";
+      }
+      darkToggle.addEventListener("click", () => {
+        document.body.classList.toggle("dark");
+        const isDark = document.body.classList.contains("dark");
+        localStorage.setItem("darkMode", isDark);
+        darkToggle.textContent = isDark ? "☀️" : "🌙";
+      });
+
+      // 📸 Carregar dados salvos
+      const savedFoto = localStorage.getItem("fotoPerfil");
+      const savedNome = localStorage.getItem("nomeUsuario");
+      if (savedFoto) foto.src = savedFoto;
+      if (savedNome) nome.value = savedNome;
+
+      // Alterar foto
+      foto.onclick = () => fileInput.click();
+      fileInput.addEventListener("change", (e) => {
+        const file = e.target.files[0];
+        if (file) {
+          const reader = new FileReader();
+          reader.onload = (x) => (foto.src = x.target.result);
+          reader.readAsDataURL(file);
+        }
+      });
+
+      // 💾 Salvar alterações
+      document.getElementById("salvar").onclick = () => {
+        const nomeValue = nome.value.trim();
+        if (!nomeValue) return alert("Digite um nome válido!");
+        localStorage.setItem("fotoPerfil", foto.src);
+        localStorage.setItem("nomeUsuario", nomeValue);
+        alert("Perfil atualizado com sucesso!");
+        location.href = "home.html";
+      };
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,2 @@
+<plugin name="cordova-plugin-firebasex" spec="^17.0.0" />
+<preference name="FirebaseMessagingAutoInitEnabled" value="true" />

@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Meus Medicamentos</title>
+<style>
+ body{font-family:-apple-system,Roboto,Arial;margin:0;padding:20px;background:#f4f6fa;color:#111}
+ .card{background:#fff;padding:18px;border-radius:14px;box-shadow:0 8px 20px rgba(0,0,0,0.08);max-width:520px;margin:40px auto}
+ input,button{width:100%;padding:10px;margin-top:10px;border-radius:10px;border:1px solid #ddd}
+ button{background:#007aff;color:#fff;border:none;cursor:pointer}
+ ul{list-style:none;padding:0;margin-top:14px}
+ li{background:#f0f6ff;padding:10px;border-radius:10px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center}
+ a{display:block;text-align:center;margin-top:12px;color:#007aff;text-decoration:none}
+</style>
+</head>
+<body>
+<div class="card">
+  <h2>Meus Medicamentos</h2>
+  <input type="text" id="nomeMed" placeholder="Nome do medicamento">
+  <label>Horário diário</label>
+  <input type="time" id="horaMed">
+  <button id="addMedBtn">Adicionar medicamento</button>
+
+  <ul id="listaMeds"></ul>
+  <a href="home.html">← Voltar para Home</a>
+</div>
+
+<script>
+// helpers
+function saveMeds(arr){ localStorage.setItem("medicamentos", JSON.stringify(arr)); }
+function saveNotif(obj){ const arr=JSON.parse(localStorage.getItem("notificacoes")||"[]"); arr.unshift(obj); localStorage.setItem("notificacoes", JSON.stringify(arr)); }
+
+// render
+function renderMeds(){
+  const arr = JSON.parse(localStorage.getItem("medicamentos") || "[]");
+  const ul = document.getElementById("listaMeds"); ul.innerHTML="";
+  arr.forEach((m,i)=>{
+    const li = document.createElement("li");
+    li.innerHTML = `<div><strong>${m.name}</strong><div style="font-size:12px;opacity:.8">Todos os dias às ${m.time}</div></div>`;
+    const btn = document.createElement("button"); btn.textContent="❌"; btn.style.background="#ff3b30";
+    btn.onclick = ()=>{ cancelMed(m.notifId); arr.splice(i,1); saveMeds(arr); renderMeds(); };
+    li.appendChild(btn);
+    ul.appendChild(li);
+  });
+}
+
+// schedule daily med
+function scheduleMed(time, name, notifId){
+  const [hh, mm] = time.split(":").map(Number);
+  if(window.cordova && window.cordova.plugins && cordova.plugins.notification){
+    cordova.plugins.notification.local.schedule({
+      id: notifId,
+      title: "Hora do remédio",
+      text: name,
+      trigger: { every: { hour: hh, minute: mm } }
+    });
+  }
+  saveNotif({ title: "Medicamento agendado", body: `${name} às ${time}`, date: new Date().toISOString(), type:"med"});
+}
+
+function cancelMed(notifId){
+  if(window.cordova && window.cordova.plugins && cordova.plugins.notification){
+    cordova.plugins.notification.local.cancel(notifId, ()=>{}, ()=>{});
+  }
+}
+
+// add med
+document.getElementById("addMedBtn").addEventListener("click", ()=>{
+  const name = document.getElementById("nomeMed").value.trim();
+  const time = document.getElementById("horaMed").value;
+  if(!name || !time) return alert("Preencha nome e horário!");
+  const arr = JSON.parse(localStorage.getItem("medicamentos")||"[]");
+  const id = Date.now();
+  arr.push({ name, time, notifId: id });
+  saveMeds(arr);
+  scheduleMed(time, name, id);
+  renderMeds();
+  document.getElementById("nomeMed").value=""; document.getElementById("horaMed").value="";
+  alert("Medicamento salvo e notificação diária agendada.");
+});
+
+// init
+renderMeds();
+document.addEventListener("deviceready", ()=> {
+  if(cordova && cordova.plugins && cordova.plugins.notification && cordova.plugins.notification.local){
+    cordova.plugins.notification.local.requestPermission();
+  }
+}, false);
+</script>
+</body>
+</html>

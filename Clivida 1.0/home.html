@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Clivida - Home</title>
+<style>
+  :root{--bg:#f4f6fa;--card:#fff;--text:#111;--accent:#007aff;--shadow:rgba(0,0,0,0.12)}
+  body.dark{--bg:#0f0f0f;--card:#1c1c1e;--text:#f5f5f7;--accent:#0a84ff}
+  *{box-sizing:border-box} body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,Roboto,Arial;min-height:100vh;display:flex;flex-direction:column;align-items:center}
+  header{width:100%;padding:16px 20px;display:flex;justify-content:space-between;align-items:center}
+  .logo{color:var(--accent);font-weight:700;font-size:20px}
+  #darkToggle{background:none;border:none;font-size:20px;color:var(--accent);cursor:pointer}
+  .profile{margin-top:6px;text-align:center}
+  .profile-pic{width:90px;height:90px;border-radius:50%;overflow:hidden;box-shadow:0 6px 20px var(--shadow);background:#fff}
+  .profile-pic img{width:100%;height:100%;object-fit:cover}
+  .welcome{margin-top:10px;font-weight:600}
+  .container{width:92%;max-width:900px;margin-top:26px}
+  .card{background:var(--card);border-radius:14px;padding:14px;margin-bottom:14px;box-shadow:0 8px 20px var(--shadow)}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px}
+  .tile{background:var(--card);border-radius:12px;padding:16px;text-align:center;cursor:pointer;box-shadow:0 6px 18px var(--shadow)}
+  .badge{background:#ff3b30;color:#fff;padding:4px 8px;border-radius:999px;display:inline-block}
+  .notif-list{display:flex;flex-direction:column;gap:8px}
+  .notif-item{background:#f0f6ff;padding:10px;border-radius:10px}
+  footer{margin-top:auto;padding:18px;opacity:.7}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">Clivida</div>
+  <div>
+    <button id="alertBtn" class="tile" onclick="location.href='alertas.html'">🔔 Alertas <span id="homeBadge" class="badge" style="display:none">0</span></button>
+    <button id="darkToggle">🌙</button>
+  </div>
+</header>
+
+<div class="profile">
+  <div class="profile-pic"><img id="profileImg" src="https://cdn-icons-png.flaticon.com/512/847/847969.png" alt="perfil"></div>
+  <div class="welcome" id="welcomeText">Olá, Usuário 👋</div>
+</div>
+
+<div class="container">
+  <div class="card">
+    <h3>Próximas notificações</h3>
+    <div id="nextNotifs" class="notif-list"></div>
+  </div>
+
+  <div class="card">
+    <div class="grid">
+      <div class="tile" onclick="location.href='perfil.html'">👤<br>Perfil</div>
+      <div class="tile" onclick="location.href='minhas-consultas.html'">🗓️<br>Consultas</div>
+      <div class="tile" onclick="location.href='meus-medicamentos.html'">💊<br>Medicamentos</div>
+      <div class="tile" onclick="abrirHospitais()">🏥<br>Hospitais</div>
+      <div class="tile" onclick="abrirFarmacias()">🏪<br>Farmácias</div>
+      <div class="tile" onclick="location.href='alertas.html'">🔎<br>Ver todos</div>
+    </div>
+  </div>
+</div>
+
+<footer>Clivida © 2025</footer>
+
+<script>
+// ---------- Helpers ----------
+function formatDate(d){ try{ const dt = new Date(d); return dt.toLocaleString(); }catch(e){ return String(d); } }
+function safeParse(k){ return JSON.parse(localStorage.getItem(k) || "[]"); }
+
+// Dark mode restore
+const darkToggle = document.getElementById("darkToggle");
+if (localStorage.getItem("darkMode")==="true"){ document.body.classList.add("dark"); darkToggle.textContent="☀️"; }
+darkToggle.onclick = ()=>{ document.body.classList.toggle("dark"); const is = document.body.classList.contains("dark"); localStorage.setItem("darkMode", is); darkToggle.textContent = is? "☀️":"🌙"; };
+
+// Open maps
+function abrirHospitais(){ window.open("https://www.google.com/maps/search/hospitais+perto+de+mim","_blank"); }
+function abrirFarmacias(){ window.open("https://www.google.com/maps/search/farmácias+perto+de+mim","_blank"); }
+
+// show profile
+document.addEventListener("DOMContentLoaded", ()=>{
+  const img = localStorage.getItem("fotoPerfil"); if(img) document.getElementById("profileImg").src = img;
+  const nome = localStorage.getItem("nomeUsuario") || "Usuário"; document.getElementById("welcomeText").textContent = "Olá, "+nome.split(" ")[0]+" 👋";
+  refreshHome();
+  // if on device, init Firebase token retrieval
+  if(window.cordova && window.FirebasePlugin){
+    document.addEventListener("deviceready", ()=> {
+      FirebasePlugin.getToken(t=> { console.log("FCM token:",t); localStorage.setItem("deviceToken", t); }, e=>console.warn(e));
+      FirebasePlugin.onMessageReceived(m=> {
+        // save incoming push to notifications list
+        const n = { title: m.title || "Clivida", body: m.body || (m.message || ""), date: new Date().toISOString() };
+        const arr = JSON.parse(localStorage.getItem("notificacoes") || "[]"); arr.unshift(n); localStorage.setItem("notificacoes", JSON.stringify(arr));
+        refreshHome();
+      }, e=>console.warn(e));
+    }, false);
+  }
+});
+
+// populate next notifications (upcoming local notifications saved in storage)
+function refreshHome(){
+  const notifs = JSON.parse(localStorage.getItem("notificacoes") || "[]");
+  const next = notifs.slice(0,4);
+  const box = document.getElementById("nextNotifs"); box.innerHTML = "";
+  if(next.length===0){ box.innerHTML = "<div class='notif-item'>Nenhuma notificação recente.</div>"; }
+  next.forEach(n=>{
+    const div = document.createElement("div"); div.className="notif-item";
+    div.innerHTML = `<strong>${n.title}</strong><div>${n.body}</div><small style="opacity:.7">${formatDate(n.date)}</small>`;
+    box.appendChild(div);
+  });
+  // badge count
+  const badgeCount = notifs.length;
+  const b = document.getElementById("homeBadge");
+  if(badgeCount>0){ b.style.display="inline-block"; b.textContent = badgeCount; } else b.style.display="none";
+}
+</script>
+</body>
+</html>

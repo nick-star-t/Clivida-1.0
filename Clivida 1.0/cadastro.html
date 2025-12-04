@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Clivida - Cadastro</title>
+<style>
+  :root {
+    --bg: #f4f6fa;
+    --card: #ffffff;
+    --text: #111;
+    --accent: #007aff;
+    --shadow: rgba(0,0,0,0.1);
+  }
+  body.dark {
+    --bg: #0f0f0f;
+    --card: #1c1c1e;
+    --text: #f5f5f7;
+    --accent: #0a84ff;
+    --shadow: rgba(255,255,255,0.1);
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    font-family: "SF Pro Display", -apple-system, BlinkMacSystemFont, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    transition: background 0.3s, color 0.3s;
+  }
+
+  .cadastro-container {
+    width: 90%;
+    max-width: 380px;
+    background: var(--card);
+    padding: 40px 30px;
+    border-radius: 25px;
+    box-shadow: 0 8px 20px var(--shadow);
+    text-align: center;
+    animation: fadeIn 0.8s ease;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .logo {
+    width: 80px;
+    height: 80px;
+    border-radius: 25%;
+    background: var(--accent);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 40px;
+    color: #fff;
+    margin: 0 auto 25px;
+  }
+
+  h1 {
+    font-size: 26px;
+    font-weight: 700;
+    margin-bottom: 30px;
+  }
+
+  input {
+    width: 100%;
+    padding: 14px;
+    margin: 10px 0;
+    border: none;
+    border-radius: 12px;
+    background: #f0f2f7;
+    color: #000;
+    font-size: 15px;
+    outline: none;
+  }
+  body.dark input {
+    background: #2c2c2e;
+    color: #fff;
+  }
+
+  button {
+    width: 100%;
+    padding: 15px;
+    background: var(--accent);
+    border: none;
+    color: #fff;
+    font-size: 16px;
+    font-weight: 600;
+    border-radius: 12px;
+    cursor: pointer;
+    margin-top: 10px;
+    transition: 0.3s;
+  }
+
+  button:hover {
+    opacity: 0.9;
+    transform: scale(1.02);
+  }
+
+  .link {
+    margin-top: 20px;
+    font-size: 14px;
+    color: var(--accent);
+    cursor: pointer;
+  }
+
+  #darkToggle {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    background: none;
+    border: none;
+    font-size: 22px;
+    cursor: pointer;
+    color: var(--accent);
+  }
+</style>
+</head>
+<body>
+  <button id="darkToggle">🌙</button>
+
+  <div class="cadastro-container">
+    <div class="logo">💙</div>
+    <h1>Criar Conta</h1>
+
+    <input type="text" id="nome" placeholder="Nome completo">
+    <input type="email" id="email" placeholder="E-mail">
+    <input type="password" id="senha" placeholder="Senha">
+    <input type="password" id="confirmar" placeholder="Confirmar senha">
+
+    <button onclick="cadastrar()">Cadastrar</button>
+
+    <div class="link" onclick="location.href='index.html'">
+      Já tem conta? Entrar
+    </div>
+  </div>
+
+  <script>
+    // 🌙 Dark Mode persistente
+    const darkToggle = document.getElementById("darkToggle");
+    if (localStorage.getItem("darkMode") === "true") {
+      document.body.classList.add("dark");
+      darkToggle.textContent = "☀️";
+    }
+    darkToggle.addEventListener("click", () => {
+      document.body.classList.toggle("dark");
+      const isDark = document.body.classList.contains("dark");
+      localStorage.setItem("darkMode", isDark);
+      darkToggle.textContent = isDark ? "☀️" : "🌙";
+    });
+
+    // Cadastrar usuário (salva no localStorage)
+    function cadastrar() {
+      const nome = document.getElementById("nome").value;
+      const email = document.getElementById("email").value;
+      const senha = document.getElementById("senha").value;
+      const confirmar = document.getElementById("confirmar").value;
+
+      if (!nome || !email || !senha || !confirmar) {
+        alert("Por favor, preencha todos os campos.");
+        return;
+      }
+
+      if (senha !== confirmar) {
+        alert("As senhas não coincidem.");
+        return;
+      }
+
+      const usuario = { nome, email, senha };
+      localStorage.setItem("usuario", JSON.stringify(usuario));
+      alert("Cadastro realizado com sucesso!");
+      window.location.href = "index.html";
+    }
+  </script>
+</body>
+</html>
